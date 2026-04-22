@@ -1,0 +1,31 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080810;
+  --surface: #0f0f1a;
+  --surface2: #161625;
+  --border: #1e1e32;
+  --accent: #b08cff;
+  --accent-dim: rgba(176,140,255,0.12);
+  --accent-glow: rgba(176,140,255,0.2);
+  --text: #e4e0f0;
+  --text-soft: #9890b0;
+  --muted: #4a4560;
+  --danger: #ff7070;
+  --gold: #d4a96a;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
