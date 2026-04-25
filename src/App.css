@@ -1301,4 +1301,47 @@ textarea {
     transform: none;
     bottom: 1.2rem;
   }
+
+
+
+
+  .code-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.code-modal-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Primary button (Telegram) */
+.code-modal-btn.primary {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+}
+
+.code-modal-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 242, 254, 0.3);
+}
+
+/* Secondary button (Instagram) */
+.code-modal-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ddd;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.code-modal-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
 }

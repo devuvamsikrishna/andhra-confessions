@@ -456,7 +456,7 @@ useEffect(() => {
       setText("");
       setMood("Secret");
       setTitle("");
-      clearImages();
+      //clearImages();
       setAuthenticCode(generatedCode);
       setCodePopupOpen(true);
       showToast("Sent for approval. It will appear after review.");
@@ -789,13 +789,43 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
               Authentic code is : <strong>{authenticCode}</strong>
             </div>
       
-            <button
-              type="button"
-              className="code-modal-btn"
-              onClick={() => setCodePopupOpen(false)}
-            >
-              I understand
-            </button>
+            <div className="code-modal-actions">
+        <button
+          className="code-modal-btn primary"
+          onClick={() => {
+            window.open(
+              `https://t.me/vizagconfessionsadmin?text=${encodeURIComponent(
+                `My code is ${authenticCode}`
+              )}`,
+              "_blank"
+            );
+          }}
+        >
+          Contact via Telegram
+        </button>
+
+        <button
+          className="code-modal-btn secondary"
+          onClick={() => {
+            navigator.clipboard.writeText(`My code is ${authenticCode}`);
+            window.open(
+              "https://www.instagram.com/direct/t/17849011890267012/?hl=en",
+              "_blank"
+            );
+            showToast("Message copied! Paste in Instagram.");
+          }}
+        >
+          Contact via Instagram
+        </button>
+
+        <button
+          type="button"
+          className="code-modal-btn secondary"
+          onClick={() => setCodePopupOpen(false)}
+        >
+          Close
+        </button>
+        </div>
           </div>
         </div>
       )}
@@ -807,7 +837,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
           <p className="contact-copy">Follow updates and send feedback.</p>
         </div>
         <a
-          href="https://instagram.com/YOUR_INSTAGRAM_HANDLE"
+          href="https://www.instagram.com/direct/t/17849011890267012/?hl=en"
           className="contact-link"
           target="_blank"
           rel="noopener noreferrer"
@@ -836,19 +866,19 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
         </a>
 
         <a
-  href="https://t.me/YOUR_TELEGRAM_USERNAME"
-  className="contact-link"
-  target="_blank"
-  rel="noopener noreferrer"
->
-  <svg
-    className="contact-icon"
-    xmlns="http://www.w3.org/2000/svg"
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
+          href="https://t.me/vizagconfessionsadmin"
+          className="contact-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg
+            className="contact-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
     <path
       fill="#229ED9"
       d="M9.04 15.47l-.38 5.32c.54 0 .77-.23 1.05-.5l2.52-2.41 5.22 3.82c.96.53 1.64.25 1.89-.89l3.43-16.08.01-.01c.3-1.39-.5-1.93-1.44-1.58L1.55 9.52c-1.35.53-1.33 1.29-.23 1.63l4.9 1.53L18.62 6.4c.58-.36 1.11-.16.68.2"
