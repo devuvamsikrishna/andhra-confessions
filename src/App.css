@@ -1,3 +1,13 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
 /* ── Layout ─────────────────────────────────────────── */
 :root {
   --bg: #080810;
@@ -336,22 +346,22 @@ body[data-theme="confession"] .card {
 
 /* ── Main layout ─────────────────────────────────────── */
 .layout {
-  position: relative; z-index: 1;
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: clamp(0.9rem, 2vw, 1.3rem);
-  width: min(1100px, 100%);
+  width: 100%;
+  max-width: min(1100px, 100%);
   margin: 0 auto;
-  padding: 0 1.5rem clamp(0.8rem, 2vh, 1.2rem);
+  padding: 0 1rem clamp(0.8rem, 2vh, 1.2rem);
   flex: 1;
-  min-height: 0;
-  align-items: stretch;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 769px) {
   .layout {
-    grid-template-columns: 1fr;
-    padding: 0 1rem 1rem;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 1.5rem clamp(0.8rem, 2vh, 1.2rem);
   }
 }
 
@@ -396,6 +406,7 @@ label {
 
 input, textarea {
   width: 100%;
+  max-width: 100%;
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -439,6 +450,7 @@ textarea {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.42rem;
+  width: 100%;
 }
 
 .mood-chip {

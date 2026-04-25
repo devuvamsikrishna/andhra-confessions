@@ -10,6 +10,8 @@ import {
   updateDoc,
   increment,
 } from "firebase/firestore";
+
+
 //import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 //import { db, storage } from "./firebase";
 import {db} from "./firebase";
@@ -117,21 +119,28 @@ function ConfessionCard({ confession, isNew, isCotd, getReactionCount, onReact, 
   }, [commentsOpen, confession.id]);
 
   async function handleCommentSubmit() {
-    const trimmed = commentText.trim();
-    if (!trimmed) return;
-    setCommentSubmitting(true);
-    try {
-      await addDoc(collection(db, "confessions", confession.id, "comments"), {
-        text: trimmed,
-        createdAt: serverTimestamp(),
-      });
-      setCommentText("");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCommentSubmitting(false);
-    }
+  const trimmed = commentText.trim();
+  if (!trimmed) return;
+  setCommentSubmitting(true);
+  try {
+    // Add the comment
+    await addDoc(collection(db, "confessions", confession.id, "comments"), {
+      text: trimmed,
+      createdAt: serverTimestamp(),
+    });
+
+    // ← Add this: increment the count on the parent confession
+    await updateDoc(doc(db, "confessions", confession.id), {
+      commentCount: increment(1),
+    });
+
+    setCommentText("");
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setCommentSubmitting(false);
   }
+}
 
   return (
     <div id={`confession-${confession.id}`} className={`card ${isNew ? "card--new" : ""} ${isCotd ? "card--cotd" : ""}`}>
