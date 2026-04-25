@@ -190,7 +190,9 @@ function ConfessionCard({ confession, isNew, isCotd, getReactionCount, onReact, 
         className="comments-toggle"
         onClick={() => setCommentsOpen((prev) => !prev)}
       >
-        {commentsOpen ? "Hide comments" : `View comments (${confession.commentCount || 0})`}
+        {commentsOpen 
+  ? `Hide comments (${comments.length})` 
+  : `View comments (${confession.commentCount || 0})`}
       </button>
 
       {commentsOpen && (
