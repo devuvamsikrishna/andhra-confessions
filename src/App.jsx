@@ -809,7 +809,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
           onClick={() => {
             navigator.clipboard.writeText(`My code is ${authenticCode}`);
             window.open(
-              "https://www.instagram.com/direct/t/17849011890267012/?hl=en",
+              "https://www.instagram.com/vizag_confessions121/?hl=en",
               "_blank"
             );
             showToast("Message copied! Paste in Instagram.");
@@ -837,7 +837,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
           <p className="contact-copy">Follow updates and send feedback.</p>
         </div>
         <a
-          href="https://www.instagram.com/direct/t/17849011890267012/?hl=en"
+          href="https://www.instagram.com/vizag_confessions121/?hl=en"
           className="contact-link"
           target="_blank"
           rel="noopener noreferrer"
