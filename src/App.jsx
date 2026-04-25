@@ -10,8 +10,9 @@ import {
   updateDoc,
   increment,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { db, storage } from "./firebase";
+//import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+//import { db, storage } from "./firebase";
+import {db} from "./firebase";
 import "./App.css";
 
 const MOODS = ["Love", "Regret", "College", "Family", "Secret", "Funny"];
@@ -93,16 +94,59 @@ function withTimeout(promise, ms, message) {
 }
 
 // ── Confession Card ──────────────────────────────────────────────
-function ConfessionCard({ confession, isNew, getReactionCount, onReact, onShare }) {
+function ConfessionCard({ confession, isNew, isCotd, getReactionCount, onReact, onShare }) {
   const images = getConfessionImages(confession);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!commentsOpen) return;
+    setCommentsLoading(true);
+    const q = query(
+      collection(db, "confessions", confession.id, "comments"),
+      orderBy("createdAt", "asc")
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      setComments(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setCommentsLoading(false);
+    });
+    return () => unsub();
+  }, [commentsOpen, confession.id]);
+
+  async function handleCommentSubmit() {
+    const trimmed = commentText.trim();
+    if (!trimmed) return;
+    setCommentSubmitting(true);
+    try {
+      await addDoc(collection(db, "confessions", confession.id, "comments"), {
+        text: trimmed,
+        createdAt: serverTimestamp(),
+      });
+      setCommentText("");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCommentSubmitting(false);
+    }
+  }
 
   return (
-    <div id={`confession-${confession.id}`} className={`card ${isNew ? "card--new" : ""}`}>
+    <div id={`confession-${confession.id}`} className={`card ${isNew ? "card--new" : ""} ${isCotd ? "card--cotd" : ""}`}>
+      {isCotd && (
+        <div className="cotd-badge">🏆 Confession of the Day</div>
+      )}
       <div className="card-topline">
         <div className="card-quote-mark">"</div>
         <span className="card-mood">{confession.mood || "Secret"}</span>
       </div>
+      {confession.title && (
+        <h3 className="card-title">{confession.title}</h3>
+      )}
       <p className="card-text">{confession.text}</p>
+
       {images.length > 0 && (
         <div className={`card-images card-images--${Math.min(images.length, 5)}`}>
           {images.map((imageUrl, index) => (
@@ -116,29 +160,68 @@ function ConfessionCard({ confession, isNew, getReactionCount, onReact, onShare 
           ))}
         </div>
       )}
-      <div className="reaction-row" aria-label="React to this confession">
+
+      <div className="reaction-row">
         {REACTIONS.map((reaction) => (
           <button
             key={reaction.key}
             className="reaction-btn"
-            type="button"
             onClick={() => onReact(confession.id, reaction.key)}
-            aria-label={reaction.label}
           >
-            <span aria-hidden="true">{reaction.icon}</span>
-            <span>{getReactionCount(confession, reaction.key)}</span>
+            {reaction.icon} {getReactionCount(confession, reaction.key)}
           </button>
         ))}
-        <button
-          className="reaction-btn share-btn"
-          type="button"
-          onClick={() => onShare(confession)}
-          aria-label="Share confession"
-        >
-          <span aria-hidden="true">↗</span>
-          <span>Share</span>
+        <button className="reaction-btn share-btn" onClick={() => onShare(confession)}>
+          ↗ Share
         </button>
       </div>
+
+      {/* Comments toggle */}
+      <button
+        className="comments-toggle"
+        onClick={() => setCommentsOpen((prev) => !prev)}
+      >
+        {commentsOpen ? "Hide comments" : `View comments (${confession.commentCount || 0})`}
+      </button>
+
+      {commentsOpen && (
+        <div className="comments-section">
+          {commentsLoading ? (
+            <p className="comments-empty">Loading comments...</p>
+          ) : comments.length === 0 ? (
+            <p className="comments-empty">No comments yet. Be the first.</p>
+          ) : (
+            <div className="comments-list">
+              {comments.map((c) => (
+                <div key={c.id} className="comment">
+                  <span className="comment-text">{c.text}</span>
+                  <span className="comment-time">{formatTime(c.createdAt)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="comment-input-row">
+            <input
+              type="text"
+              className="comment-input"
+              placeholder="Write an anonymous comment..."
+              value={commentText}
+              maxLength={200}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !commentSubmitting && handleCommentSubmit()}
+            />
+            <button
+              className="comment-submit"
+              onClick={handleCommentSubmit}
+              disabled={commentSubmitting || !commentText.trim()}
+            >
+              {commentSubmitting ? "..." : "Post"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="card-footer">
         <span className="card-anon">Anonymous</span>
         <span className="card-time">{formatTime(confession.createdAt)}</span>
@@ -146,7 +229,6 @@ function ConfessionCard({ confession, isNew, getReactionCount, onReact, onShare 
     </div>
   );
 }
-
 function formatTime(ts) {
   if (!ts) return "just now";
   const date = ts.toDate ? ts.toDate() : new Date(ts);
@@ -181,6 +263,26 @@ export default function App() {
   const [newIds, setNewIds] = useState(new Set());
   const [feedVisible, setFeedVisible] = useState(false);
   const toastTimer = useRef(null);
+  const [title, setTitle] = useState("");
+  const [theme, setTheme] = useState("dark"); // default
+
+
+
+
+  // Load saved theme
+useEffect(() => {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme) {
+    setTheme(savedTheme);
+  }
+}, []);
+
+// Apply theme to body
+useEffect(() => {
+  document.body.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}, [theme]);
+
 
   // Real-time Firestore listener
   useEffect(() => {
@@ -214,101 +316,108 @@ export default function App() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }
 
-  function handleImageChange(event) {
-    const selectedFiles = Array.from(event.target.files || []);
-    if (selectedFiles.length === 0) return;
+  // function handleImageChange(event) {
+  //   const selectedFiles = Array.from(event.target.files || []);
+  //   if (selectedFiles.length === 0) return;
 
-    const hasInvalidFile = selectedFiles.some((file) => !file.type.startsWith("image/"));
-    const hasLargeFile = selectedFiles.some((file) => file.size > 5 * 1024 * 1024);
+  //   const hasInvalidFile = selectedFiles.some((file) => !file.type.startsWith("image/"));
+  //   const hasLargeFile = selectedFiles.some((file) => file.size > 5 * 1024 * 1024);
 
-    if (hasInvalidFile) {
-      showToast("Please attach an image file.", "error");
-      event.target.value = "";
-      return;
-    }
+  //   if (hasInvalidFile) {
+  //     showToast("Please attach an image file.", "error");
+  //     event.target.value = "";
+  //     return;
+  //   }
 
-    if (hasLargeFile) {
-      showToast("Each image must be under 5 MB.", "error");
-      event.target.value = "";
-      return;
-    }
+  //   if (hasLargeFile) {
+  //     showToast("Each image must be under 5 MB.", "error");
+  //     event.target.value = "";
+  //     return;
+  //   }
 
-    if (images.length + selectedFiles.length > 5) {
-      showToast("Only the first 5 images were added.", "error");
-    }
+  //   if (images.length + selectedFiles.length > 5) {
+  //     showToast("Only the first 5 images were added.", "error");
+  //   }
 
-    setImages((prev) => {
-      const openSlots = Math.max(0, 5 - prev.length);
-      const filesToAdd = selectedFiles.slice(0, openSlots);
-      return [
-        ...prev,
-        ...filesToAdd.map((file) => ({
-          file,
-          previewUrl: URL.createObjectURL(file),
-        })),
-      ];
-    });
-    event.target.value = "";
-  }
+  //   setImages((prev) => {
+  //     const openSlots = Math.max(0, 5 - prev.length);
+  //     const filesToAdd = selectedFiles.slice(0, openSlots);
+  //     return [
+  //       ...prev,
+  //       ...filesToAdd.map((file) => ({
+  //         file,
+  //         previewUrl: URL.createObjectURL(file),
+  //       })),
+  //     ];
+  //   });
+  //   event.target.value = "";
+  // }
 
-  function removeImage(indexToRemove) {
-    setImages((prev) => {
-      const imageToRemove = prev[indexToRemove];
-      if (imageToRemove) URL.revokeObjectURL(imageToRemove.previewUrl);
-      return prev.filter((_, index) => index !== indexToRemove);
-    });
-  }
+  // function removeImage(indexToRemove) {
+  //   setImages((prev) => {
+  //     const imageToRemove = prev[indexToRemove];
+  //     if (imageToRemove) URL.revokeObjectURL(imageToRemove.previewUrl);
+  //     return prev.filter((_, index) => index !== indexToRemove);
+  //   });
+  // }
 
-  function clearImages() {
-    setImages((prev) => {
-      prev.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-      return [];
-    });
-  }
+  // function clearImages() {
+  //   setImages((prev) => {
+  //     prev.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+  //     return [];
+  //   });
+  // }
 
   async function handleSubmit() {
     const trimName = name.trim();
     const trimText = text.trim();
+    const trimTitle = title.trim();
     if (!trimName) { showToast("Please enter your name.", "error"); return; }
     if (!trimText) { showToast("Write something first.", "error"); return; }
+    if (!trimTitle) { showToast("Please add a title.", "error"); return; }
 
     setLoading(true);
     setSubmitStatus(images.length > 0 ? "Preparing images..." : "Submitting confession...");
     try {
       const generatedCode = generateAuthenticCode();
-      const imageUploads = await Promise.all(
-        images.map(async ({ file }, index) => {
-          setSubmitStatus(`Uploading image ${index + 1} of ${images.length}...`);
-          const imagePath = `confession-images/${generatedCode}-${Date.now()}-${index + 1}-${getSafeFileName(file.name)}`;
-          const imageRef = ref(storage, imagePath);
-          const compressedImage = await compressImage(file);
-          await withTimeout(
-            uploadBytes(imageRef, compressedImage, {
-              contentType: "image/jpeg",
-              customMetadata: { authenticCode: generatedCode },
-            }),
-            45000,
-            "Image upload took too long. Please try smaller images or check Firebase Storage rules."
-          );
-          return {
-            imagePath,
-            imageUrl: await withTimeout(
-              getDownloadURL(imageRef),
-              15000,
-              "Could not get uploaded image URL."
-            ),
-          };
-        })
-      );
+      // const imageUploads = await Promise.all(
+      //   images.map(async ({ file }, index) => {
+      //     setSubmitStatus(`Uploading image ${index + 1} of ${images.length}...`);
+      //     const imagePath = `confession-images/${generatedCode}-${Date.now()}-${index + 1}-${getSafeFileName(file.name)}`;
+      //     const imageRef = ref(storage, imagePath);
+      //     const compressedImage = await compressImage(file);
+      //     await withTimeout(
+      //       uploadBytes(imageRef, compressedImage, {
+      //         contentType: "image/jpeg",
+      //         customMetadata: { authenticCode: generatedCode },
+      //       }),
+      //       45000,
+      //       "Image upload took too long. Please try smaller images or check Firebase Storage rules."
+      //     );
+      //     return {
+      //       imagePath,
+      //       imageUrl: await withTimeout(
+      //         getDownloadURL(imageRef),
+      //         15000,
+      //         "Could not get uploaded image URL."
+      //       ),
+      //     };
+      //   })
+      // );
 
+      const imageUploads = []; // Remove this line when enabling image uploads
       setSubmitStatus("Saving confession...");
-      const imageUrls = imageUploads.map((image) => image.imageUrl);
-      const imagePaths = imageUploads.map((image) => image.imagePath);
+      const imageUrls = [];
+      const imagePaths = [];
+
+      //const imageUrls = imageUploads.map((image) => image.imageUrl);
+      //const imagePaths = imageUploads.map((image) => image.imagePath);
 
       const docRef = await withTimeout(
         addDoc(collection(db, "confessions"), {
           name: trimName,
           text: trimText,
+          title: trimTitle,
           mood,
           authenticCode: generatedCode,
           imageUrls,
@@ -335,6 +444,7 @@ export default function App() {
       setName("");
       setText("");
       setMood("Secret");
+      setTitle("");
       clearImages();
       setAuthenticCode(generatedCode);
       setCodePopupOpen(true);
@@ -405,17 +515,26 @@ export default function App() {
   }
 
   const approvedConfessions = confessions.filter(isApproved);
-  const filteredConfessions = approvedConfessions.filter((confession) => {
-    return moodFilter === "All" || (confession.mood || "Secret") === moodFilter;
-  });
 
-  const displayedConfessions = [...filteredConfessions].sort((a, b) => {
-    if (feedMode === "popular") {
-      const reactionDiff = getTotalReactions(b) - getTotalReactions(a);
-      if (reactionDiff !== 0) return reactionDiff;
-    }
-    return getDateValue(b.createdAt) - getDateValue(a.createdAt);
-  });
+// Confession of the day — most reacted in last 24 hours
+const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+const cotd = approvedConfessions.reduce((best, c) => {
+  if (getDateValue(c.createdAt) < oneDayAgo) return best;
+  if (!best) return c;
+  return getTotalReactions(c) > getTotalReactions(best) ? c : best;
+}, null);
+
+const filteredConfessions = approvedConfessions.filter((confession) => {
+  return moodFilter === "All" || (confession.mood || "Secret") === moodFilter;
+});
+
+const displayedConfessions = [...filteredConfessions].sort((a, b) => {
+  if (feedMode === "popular") {
+    const reactionDiff = getTotalReactions(b) - getTotalReactions(a);
+    if (reactionDiff !== 0) return reactionDiff;
+  }
+  return getDateValue(b.createdAt) - getDateValue(a.createdAt);
+});
 
   const charLeft = 500 - text.length;
 
@@ -428,14 +547,36 @@ export default function App() {
 
       {/* ── Header ── */}
       <header className="site-header">
-        <p className="eyebrow">A wall of honest words</p>
-        <h1 className="site-title">
-          {/* Replace with your site name */}
-          <span className="title-plain">Andhra </span>
-          <span className="title-italic title-highlight">Confessions</span>
-        </h1>
-        <p className="site-sub">Say what you've never said out loud.</p>
-      </header>
+  <div className="theme-switcher">
+    <button
+      className={theme === "light" ? "active" : ""}
+      onClick={() => setTheme("light")}
+    >
+      ☀️
+    </button>
+
+    <button
+      className={theme === "dark" ? "active" : ""}
+      onClick={() => setTheme("dark")}
+    >
+      🌙
+    </button>
+
+    <button
+      className={theme === "confession" ? "active" : ""}
+      onClick={() => setTheme("confession")}
+    >
+      🔥
+    </button>
+  </div>
+
+  <p className="eyebrow">A wall of honest words</p>
+  <h1 className="site-title">
+    <span className="title-plain">Andhra </span>
+    <span className="title-italic title-highlight">Confessions</span>
+  </h1>
+  <p className="site-sub">Say what you've never said out loud.</p>
+</header>
 
       <main className="layout">
 
@@ -473,6 +614,17 @@ export default function App() {
           </div>
 
           <div className="field">
+            <div className="field">
+            <label htmlFor="title">Confession Title</label>
+            <input
+              id="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Give your confession a title..."
+              maxLength={80}
+            />
+          </div>
             <label htmlFor="text">Your Confession</label>
             <textarea
               id="text"
@@ -486,7 +638,7 @@ export default function App() {
             </span>
           </div>
 
-          <div className="field">
+          {/* <div className="field">
             <label htmlFor="image">Attach Pictures</label>
             <input
               id="image"
@@ -508,7 +660,7 @@ export default function App() {
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
 
           <button
             className={`submit-btn ${loading ? "loading" : ""}`}
@@ -553,12 +705,12 @@ export default function App() {
                 Popular
               </button>
             </div>
-          </div>
+          </div> 
           <div className="filter-row" role="group" aria-label="Filter by mood">
             {FILTERS.map((item) => (
               <button
                 key={item}
-                type="button"
+                type="button" 
                 className={`filter-chip ${moodFilter === item ? "filter-chip--active" : ""}`}
                 onClick={() => setMoodFilter(item)}
               >
@@ -598,6 +750,7 @@ export default function App() {
                   key={c.id}
                   confession={c}
                   isNew={newIds.has(c.id)}
+                  isCotd={cotd?.id === c.id}
                   getReactionCount={getReactionCount}
                   onReact={handleReact}
                   onShare={handleShare}
@@ -668,8 +821,31 @@ export default function App() {
             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" fill="#fff" />
             <circle cx="17.5" cy="6.5" r="1.5" fill="#fff" />
           </svg>
-          @instagram
+          Instagram
         </a>
+
+        <a
+  href="https://t.me/YOUR_TELEGRAM_USERNAME"
+  className="contact-link"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <svg
+    className="contact-icon"
+    xmlns="http://www.w3.org/2000/svg"
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      fill="#229ED9"
+      d="M9.04 15.47l-.38 5.32c.54 0 .77-.23 1.05-.5l2.52-2.41 5.22 3.82c.96.53 1.64.25 1.89-.89l3.43-16.08.01-.01c.3-1.39-.5-1.93-1.44-1.58L1.55 9.52c-1.35.53-1.33 1.29-.23 1.63l4.9 1.53L18.62 6.4c.58-.36 1.11-.16.68.2"
+    />
+  </svg>
+  Telegram
+</a>
+
       </footer>
     </div>
   );

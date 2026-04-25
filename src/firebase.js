@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBGsaFFMmKS7xb1I_ZnFzGG_MZMuhO_YTw",
   authDomain: "andhra-confessions.firebaseapp.com",
   projectId: "andhra-confessions",
-  storageBucket: "andhra-confessions.firebasestorage.app",
+  storageBucket: "andhra-confessions.appspot.com",
   messagingSenderId: "939687932777",
   appId: "1:939687932777:web:b8a670f7bf9bcf0b5383f8"
 };
