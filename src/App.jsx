@@ -547,7 +547,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
   return getDateValue(b.createdAt) - getDateValue(a.createdAt);
 });
 
-  const charLeft = 500 - text.length;
+  const charLeft = 500000 - text.length;
 
   return (
     <div className="app">
