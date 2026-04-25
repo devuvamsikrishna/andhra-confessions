@@ -3,25 +3,19 @@
   min-width: 0;
 }
 
-html {
+html, body {
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 body {
   overflow-x: hidden;
-  width: 100vw;
-  max-width: 100%;
 }
 
 .app {
   overflow-x: hidden;
   width: 100%;
-}
-
-html, body {
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100%;
 }
 
 /* ── Layout ─────────────────────────────────────────── */
@@ -657,7 +651,7 @@ textarea {
   border-radius: 14px;
   padding: clamp(1rem, 2.4vw, 1.45rem);
   box-shadow: 0 0 0 1px rgba(255,255,255,0.02), 0 20px 60px rgba(0,0,0,0.4);
-  max-height: calc(100vh - 230px);
+  max-height: max(400px, calc(100vh - 230px));
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -1143,21 +1137,69 @@ textarea {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ── Contact Footer ─────────────────────────────────── */
+/* ── Contact Footer (CLEAN VERSION) ─────────────────────────────────── */
+
 .site-footer {
   position: relative;
   z-index: 1;
   display: flex;
-  flex-direction: row;
-  align-items: center;
   justify-content: center;
-  gap: 1rem;
+  align-items: center;
+  gap: 40px;
   width: 100%;
-  padding: 0 1.5rem clamp(0.9rem, 2vh, 1.4rem);
+  padding: 20px 40px;
+  flex-wrap: wrap;
   text-align: center;
   animation: fadeUp 0.6s 0.25s cubic-bezier(0.16,1,0.3,1) both;
 }
+/* 🌙 Dark mode (default) */
+.footer-track-input {
+  color: var(--text);
+}
+[data-theme="light"] .footer-track {
+  background: rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.1);
+}
 
+[data-theme="light"] .footer-track-input {
+  color: #222; /* 🔥 dark text */
+}
+
+[data-theme="light"] .footer-track-input::placeholder {
+  color: rgba(0,0,0,0.4);
+}
+[data-theme="light"] .status-badge-inline {
+  background: rgba(0,0,0,0.05);
+}
+/* 🌞 Light mode fix for Join button */
+[data-theme="light"] .telegram-join-footer {
+  background: linear-gradient(135deg, #4facfe, rgba(176,140,255,0.98)) !important;
+  color: #ffffff !important;
+  opacity: 1;
+  box-shadow: 0 6px 18px rgba(34, 158, 217, 0.35);
+}
+
+.footer-track-input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+/* Sections */
+.footer-left {
+  text-align: left;
+}
+
+.footer-center {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Contact text */
 .contact-label {
   color: var(--text-soft);
   font-size: 0.68rem;
@@ -1173,6 +1215,7 @@ textarea {
   font-weight: 300;
 }
 
+/* Contact buttons */
 .contact-link {
   display: inline-flex;
   align-items: center;
@@ -1192,177 +1235,249 @@ textarea {
   box-shadow:
     0 14px 35px rgba(0,0,0,0.35),
     0 0 28px rgba(221,42,123,0.16);
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+/* 🌞 Light mode → Join Channel button fix */
+[data-theme="light"] .telegram-join-footer {
+  background: linear-gradient(135deg, #4facfe, rgba(176,140,255,0.98)) !important;
+  color: #ffffff !important;  /* 🔥 black text */
+  border: none;
 }
 
-.contact-link:hover,
-.contact-link:focus-visible {
+.contact-link:hover {
   transform: translateY(-2px);
   box-shadow:
     0 18px 44px rgba(0,0,0,0.42),
     0 0 34px rgba(221,42,123,0.28);
 }
 
-.contact-link:focus-visible {
-  outline: 3px solid rgba(176,140,255,0.35);
-  outline-offset: 4px;
+/* Telegram join button */
+.telegram-join-footer {
+  background: linear-gradient(135deg, #229ED9, rgba(176,140,255,0.98));
+  color: white !important;
+  border-radius: 999px;
 }
 
-.contact-icon {
-  flex: 0 0 auto;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));
+/* ── Footer Tracker ─────────────────────────────────── */
+
+.footer-track-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
-@media (max-width: 560px) {
-  .app {
-    min-height: auto;
-    padding: 0;
-  }
+.footer-track {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 6px;
+}
 
-  .site-header {
-    padding: 0.8rem 1rem 0.5rem;
-  }
+.footer-track-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  padding: 10px 14px;
+  font-size: 14px;
+  width: 250px;
+}
 
-  .layout {
-    padding: 0 0.75rem 1rem;
-    gap: 0.75rem;
-  }
+.footer-track-input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
 
-  .form-panel,
-  .feed-panel {
-    padding: 0.9rem;
-  }
+.footer-track-btn {
+  background: linear-gradient(135deg, #4facfe, rgba(176,140,255,0.98));
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
 
-  .feed-panel {
-    max-height: none;
-  }
+.footer-track-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 242, 254, 0.4);
+}
 
+/* Result badge */
+.footer-track-result {
+  margin-top: 4px;
+  text-align: right;
+}
+
+.status-badge {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.status-badge.approved {
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+}
+
+.status-badge.pending {
+  background: rgba(250, 204, 21, 0.12);
+  color: #facc15;
+}
+
+.status-badge.rejected {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+/* Inline status badge */
+.status-badge-inline {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Colors */
+.status-badge-inline.approved {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.status-badge-inline.pending {
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+}
+
+.status-badge-inline.rejected {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+/* ── Mobile Fix ─────────────────────────────────── */
+
+@media (max-width: 768px) {
   .site-footer {
     flex-direction: column;
-    padding-bottom: 1.5rem;
+    align-items: center;
+    text-align: center;
   }
 
-  .mood-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .footer-left,
+  .footer-center,
+  .footer-right {
+    width: 100%;
+    align-items: center;
+    justify-content: center;
   }
 
-  .image-preview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .feed-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .feed-tabs {
+  .footer-track-wrapper {
+    align-items: center;
     width: 100%;
   }
 
-  .feed-tab {
-    flex: 1;
+  .footer-track {
+    width: 100%;
+    justify-content: space-between;
   }
 
-  .reaction-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
+  .footer-track-input {
+    width: 100%;
   }
 
-  .share-btn {
-    grid-column: unset;
+  .footer-track-result {
+    text-align: center;
   }
+}
+ /* ── Info Section ── */
+.info-section {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 2rem 3rem 2.5rem;
+  border-top: 1px solid var(--border);
+}
 
-  .card-images--2,
-  .card-images--3,
-  .card-images--4,
-  .card-images--5 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
 
-  .card-images--3 .card-image,
-  .card-images--5 .card-image,
-  .card-images--3 .card-image:first-child,
-  .card-images--5 .card-image:nth-child(-n + 2) {
-    grid-column: span 1;
-  }
-
-  .contact-link {
-    width: min(100%, 300px);
-  }
-
-  .site-title {
-    font-size: clamp(1.6rem, 8vw, 2.4rem);
-  }
-
-  .toast {
-    width: 90vw;
-    left: 5vw;
-    transform: none;
-    bottom: 1.2rem;
-  }
-
-
-
-
-  .code-modal-actions {
+.info-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.2rem 1.4rem;
   display: flex;
-  gap: 12px;
-  margin-top: 18px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-.code-modal-actions {
-  display: flex;
-  flex-direction: column; /* stack on mobile */
-  gap: 12px;
-  margin-top: 20px;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-@media (min-width: 600px) {
-  .code-modal-actions {
-    flex-direction: row; /* side by side on desktop */
-    justify-content: center;
+.info-block:hover {
+  border-color: rgba(176,140,255,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.info-block-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  display: block;
+}
+
+.info-block-title {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.info-block-text {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  line-height: 1.65;
+  font-weight: 300;
+  margin: 0;
+  padding: 0;
+}
+
+.info-block-text strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.info-footer-note {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
   }
-}
-
-.code-modal-btn {
-  padding: 10px 18px;
-  border-radius: 10px;
-  border: none;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* Primary button (Telegram) */
-.code-modal-btn.primary {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: white;
-}
-
-.code-modal-btn.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 242, 254, 0.3);
-}
-
-/* Secondary button (Instagram) */
-.code-modal-btn.secondary {
-  background: rgba(0, 0, 0, 0.05); /* for light mode */
-  color: #333;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  opacity: 1; /* IMPORTANT */
-}
-
-/* Dark theme fix */
-[data-theme="dark"] .code-modal-btn.secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #eee;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.code-modal-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
+  .info-section {
+    padding: 1.5rem 1rem 2rem;
+  }
 }

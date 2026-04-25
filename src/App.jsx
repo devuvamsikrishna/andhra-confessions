@@ -9,8 +9,9 @@ import {
   doc,
   updateDoc,
   increment,
+  getDocs,
+  where
 } from "firebase/firestore";
-
 
 //import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 //import { db, storage } from "./firebase";
@@ -276,6 +277,8 @@ export default function App() {
   const toastTimer = useRef(null);
   const [title, setTitle] = useState("");
   const [theme, setTheme] = useState("dark"); // default
+  const [trackCode, setTrackCode] = useState("");
+  const [trackResult, setTrackResult] = useState(null);
 
 
 
@@ -378,6 +381,45 @@ useEffect(() => {
   //     return [];
   //   });
   // }
+
+    async function handleTrack() {
+  if (!trackCode.trim()) {
+    showToast("Enter your code", "error");
+    return;
+  }
+
+  try {
+    const q = query(
+      collection(db, "confessions"),
+      where("authenticCode", "==", trackCode)
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      showToast("Invalid code", "error");
+      setTrackResult(null);
+      return;
+    }
+
+    const data = snapshot.docs[0].data();
+    setTrackResult(data);
+
+    // ✅ move scroll logic here
+    if (data.status === "approved") {
+      setTimeout(() => {
+        const el = document.getElementById(`confession-${snapshot.docs[0].id}`);
+        el?.scrollIntoView({ behavior: "smooth" });
+      }, 500);
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast("Something went wrong", "error");
+  }
+}
+
+
 
   async function handleSubmit() {
     const trimName = name.trim();
@@ -547,7 +589,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
   return getDateValue(b.createdAt) - getDateValue(a.createdAt);
 });
 
-  const charLeft = 500000 - text.length;
+  const charLeft = 50000000 - text.length;
 
   return (
     <div className="app">
@@ -590,7 +632,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
 </header>
 
       <main className="layout">
-
+            
         {/* ── Form panel ── */}
         <section className="form-panel">
           <div className="panel-label">Confess</div>
@@ -804,7 +846,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
           Contact via Telegram
         </button>
 
-        <button
+        {/* <button
           className="code-modal-btn secondary"
           onClick={() => {
             navigator.clipboard.writeText(`My code is ${authenticCode}`);
@@ -816,7 +858,7 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
           }}
         >
           Contact via Instagram
-        </button>
+        </button> */}
 
         <button
           type="button"
@@ -832,62 +874,108 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
 
       {/* ── Contact Us ── */}
       <footer className="site-footer">
-        <div>
-          <div className="contact-label">Contact Us</div>
-          <p className="contact-copy">Follow updates and send feedback.</p>
-        </div>
-        <a
-          href="https://www.instagram.com/vizag_confessions121/?hl=en"
-          className="contact-link"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <svg
-            className="contact-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="insta-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#f58529" />
-                <stop offset="30%" stopColor="#dd2a7b" />
-                <stop offset="60%" stopColor="#8134af" />
-                <stop offset="100%" stopColor="#515bd4" />
-              </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="url(#insta-gradient)" />
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" fill="#fff" />
-            <circle cx="17.5" cy="6.5" r="1.5" fill="#fff" />
-          </svg>
-          Instagram
-        </a>
 
-        <a
-          href="https://t.me/vizagconfessionsadmin"
-          className="contact-link"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <svg
-            className="contact-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-    <path
-      fill="#229ED9"
-      d="M9.04 15.47l-.38 5.32c.54 0 .77-.23 1.05-.5l2.52-2.41 5.22 3.82c.96.53 1.64.25 1.89-.89l3.43-16.08.01-.01c.3-1.39-.5-1.93-1.44-1.58L1.55 9.52c-1.35.53-1.33 1.29-.23 1.63l4.9 1.53L18.62 6.4c.58-.36 1.11-.16.68.2"
-    />
-  </svg>
-  Telegram
-</a>
+  {/* LEFT: Contact text */}
+  <div className="footer-left">
+    <div className="contact-label">Contact Us</div>
+    <p className="contact-copy">Follow updates and send feedback.</p>
+  </div>
 
-      </footer>
+  {/* CENTER: Buttons */}
+  <div className="footer-center">
+    <a
+      href="https://t.me/vizagconfessionsadmin"
+      className="contact-link"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Telegram
+    </a>
+
+    <a
+      href="https://t.me/vizagconfessions"
+      className="contact-link telegram-join-footer"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      🚀 Join Channel
+    </a>
+  </div>
+
+  {/* RIGHT: Tracker */}
+  <div className="footer-track">
+
+  <input
+    type="text"
+    placeholder="Track Confession (Enter code)"
+    value={trackCode}
+    onChange={(e) => setTrackCode(e.target.value)}
+    className="footer-track-input"
+  />
+
+  {trackResult && (
+    <span className={`status-badge-inline ${trackResult?.status}`}>
+      {trackResult?.status === "approved" && "✅ Approved"}
+      {trackResult?.status === "pending" && "⏳ Pending"}
+      {trackResult?.status === "rejected" && "❌ Rejected"}
+    </span>
+  )}
+
+  <button className="footer-track-btn" onClick={handleTrack}>
+    Track
+  </button>
+
+</div>
+
+</footer>
+{/* ── About / Disclaimer / Privacy ── */}
+<section className="info-section">
+  <div className="info-grid">
+
+    <div className="info-block">
+      <div className="info-block-icon">🌊</div>
+      <h3 className="info-block-title">About</h3>
+      <p className="info-block-text">
+        Andhra Confessions is a safe, anonymous space for people from all over the world
+        to share their honest thoughts, stories, and feelings — without fear of judgment.
+        Whether it's love, regret, humour, or something you've never told anyone,
+        this wall is yours. Every confession is reviewed before it goes live to keep
+        this space respectful and real.
+      </p>
+    </div>
+
+    <div className="info-block">
+      <div className="info-block-icon">⚠️</div>
+      <h3 className="info-block-title">Disclaimer</h3>
+      <p className="info-block-text">
+        All confessions are submitted anonymously by users and do not represent
+        the views of Andhra Confessions or its team. We are not responsible for
+        the content submitted by users. Confessions that contain hate speech,
+        harassment, explicit content, or false information will be rejected or
+        removed. By submitting, you agree that your content may be published on
+        this platform and our associated Telegram channel.
+      </p>
+    </div>
+
+    <div className="info-block">
+      <div className="info-block-icon">🔒</div>
+      <h3 className="info-block-title">Privacy Policy</h3>
+      <p className="info-block-text">
+        Your name is collected only for admin review purposes and is
+        <strong> never displayed publicly</strong>. We do not sell, share, or
+        store your personal data beyond what is necessary to operate this platform.
+        Confessions are stored securely on Firebase. Your authentic code is the
+        only way to track your submission — keep it safe. By using this site,
+        you consent to this data policy.
+      </p>
+    </div>
+
+  </div>
+
+  <div className="info-footer-note">
+    © {new Date().getFullYear()} Andhra Confessions · Made with ❤️ in India
+  </div>
+</section>
     </div>
   );
 }
