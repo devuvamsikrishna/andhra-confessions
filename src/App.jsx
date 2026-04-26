@@ -20,6 +20,7 @@ import "./App.css";
 
 const MOODS = ["Love", "Regret", "College", "Family", "Secret", "Funny"];
 const FILTERS = ["All", ...MOODS];
+
 const REACTIONS = [
   { key: "heart", icon: "❤", label: "Felt this" },
   { key: "tears", icon: "🥲", label: "Emotional" },
@@ -104,6 +105,7 @@ function ConfessionCard({ confession, isNew, isCotd, getReactionCount, onReact, 
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  
 
   useEffect(() => {
     if (!commentsOpen) return;
@@ -279,6 +281,7 @@ export default function App() {
   const [theme, setTheme] = useState("dark"); // default
   const [trackCode, setTrackCode] = useState("");
   const [trackResult, setTrackResult] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
 
 
@@ -578,7 +581,10 @@ const cotd = approvedConfessions.reduce((best, c) => {
 }, null);
 
 const filteredConfessions = approvedConfessions.filter((confession) => {
-  return moodFilter === "All" || (confession.mood || "Secret") === moodFilter;
+  const matchesMood = moodFilter === "All" || (confession.mood || "Secret") === moodFilter;
+  const matchesSearch = searchQuery.trim() === "" || 
+    (confession.title || "").toLowerCase().includes(searchQuery.toLowerCase().trim());
+  return matchesMood && matchesSearch;
 });
 
 const displayedConfessions = [...filteredConfessions].sort((a, b) => {
@@ -759,7 +765,31 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
               </button>
             </div>
           </div> 
+          {/* Search bar */}
+<div className="search-row">
+  <div className="search-box">
+    <span className="search-icon">🔍</span>
+    <input
+      type="text"
+      className="search-input"
+      placeholder="Search by title..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+    {searchQuery && (
+      <button className="search-clear" onClick={() => setSearchQuery("")}>
+        ✕
+      </button>
+    )}
+  </div>
+  {searchQuery.trim() && (
+    <span className="search-results-count">
+      {filteredConfessions.length} result{filteredConfessions.length !== 1 ? "s" : ""}
+    </span>
+  )}
+</div>
           <div className="filter-row" role="group" aria-label="Filter by mood">
+            
             {FILTERS.map((item) => (
               <button
                 key={item}
@@ -791,11 +821,11 @@ const displayedConfessions = [...filteredConfessions].sort((a, b) => {
               <p>Be the first voice.</p>
             </div>
           ) : displayedConfessions.length === 0 ? (
-            <div className="feed-empty">
-              <div className="empty-quote">"</div>
-              <p>No {moodFilter.toLowerCase()} confessions yet.</p>
-              <p>Try another mood filter.</p>
-            </div>
+              <div className="feed-empty">
+                <div className="empty-quote">"</div>
+                <p>{searchQuery.trim() ? `No results for "${searchQuery}"` : `No ${moodFilter.toLowerCase()} confessions yet.`}</p>
+                <p>{searchQuery.trim() ? "Try a different word." : "Try another mood filter."}</p>
+              </div>
           ) : (
             <div className="feed">
               {displayedConfessions.map((c) => (
