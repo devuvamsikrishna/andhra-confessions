@@ -12,7 +12,7 @@ import {
   getDocs,
   where
 } from "firebase/firestore";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 //import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 //import { db, storage } from "./firebase";
