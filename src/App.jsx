@@ -12,6 +12,7 @@ import {
   getDocs,
   where
 } from "firebase/firestore";
+import { Analytics } from "@vercel/analytics/next"
 
 //import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 //import { db, storage } from "./firebase";
@@ -195,7 +196,7 @@ function ConfessionCard({ confession, isNew, isCotd, getReactionCount, onReact, 
       >
         {commentsOpen 
   ? `Hide comments (${comments.length})` 
-  : `View comments (${confession.commentCount || 0})`}
+  : `Add comments (${confession.commentCount || 0})`}
       </button>
 
       {commentsOpen && (
@@ -283,7 +284,7 @@ export default function App() {
   const [trackResult, setTrackResult] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-
+  <Analytics />
 
 
   // Load saved theme
